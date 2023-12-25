@@ -2,8 +2,10 @@
 const board = document.getElementById("game-board");
 
 // Zdefiniowanie zmiennych
+const gridSize = 20;
 let snake = [{ x: 10, y: 10 }];
 let food = generateFood();
+let direction = "right";
 
 //Narysowanie planszy, węza i jabłka
 function draw() {
@@ -41,6 +43,59 @@ function drawFood() {
     board.appendChild(foodElement);
 }
 
+// Generowanie jedzenia
 function generateFood () {
-    drawFood().Math.floor(Math.random() * 20) + 1;
+    const x = Math.floor(Math.random() * gridSize) + 1;
+    const y = Math.floor(Math.random() * gridSize) + 1;
+    return { x, y };
 }
+
+// Poruszanie się węża 
+function moveSnake() {
+    const head = {...snake[0]};
+    switch (direction) {
+        case "up":
+            head.y--;
+            break;
+        case "down":
+            head.y++;
+            break;
+        case "left":
+            head.x--;
+            break;
+        case "right":
+            head.x++;
+            break;
+    }
+
+    snake.unshift(head);
+
+    snake.pop();
+
+}
+
+// Poruszanie się węża za pomocą klawiatury
+document.addEventListener("keydown", (event) => {
+    switch (event.key) {
+        case "ArrowUp":
+            direction = "up";
+            break;
+        case "ArrowDown":
+            direction = "down";
+            break;
+        case "ArrowLeft":
+            direction = "left";
+            break;
+        case "ArrowRight":
+            direction = "right";
+            break;
+    }
+})
+
+
+setInterval(() => {
+    moveSnake();
+    draw();
+}, 200);
+
+
