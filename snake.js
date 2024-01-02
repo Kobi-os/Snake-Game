@@ -1,17 +1,26 @@
 // Zdefiniowanie elementów HTML
 const board = document.getElementById("game-board");
+const instructionText = document.getElementById("instruction-text")
+const logo = document.getElementById("logo");
+const score = document.getElementById("score");
+let highScoreText = document.getElementById("highScore");
 
 // Zdefiniowanie zmiennych
 const gridSize = 20;
 let snake = [{ x: 10, y: 10 }];
 let food = generateFood();
+let highScore = 0;
 let direction = "right";
+let gameInterval;
+let gameSpeedDelay = 200;
+let gameStarted = false;
 
 //Narysowanie planszy, węza i jabłka
 function draw() {
     board.innerHTML = "";
     drawSnake();
     drawFood();
+    updateScore();
 }
 
 //Narysowanie węża 
@@ -38,9 +47,11 @@ function setPosition(element, position) {
 
 //Narysowanie jabłka
 function drawFood() {
+    if (gameStarted) {
     const foodElement = createGameElement("div", "food");
     setPosition(foodElement, food);
     board.appendChild(foodElement);
+    }
 }
 
 // Generowanie jedzenia
@@ -70,12 +81,41 @@ function moveSnake() {
 
     snake.unshift(head);
 
-    snake.pop();
+
+
+    if (head.x === food.x && head.y === food.y) {
+        food = generateFood();
+        increseSpeed();
+        clearInterval(gameInterval); 
+        gameInterval = setInterval(() => {
+            moveSnake();
+            checkCollision();
+            draw();
+        }, gameSpeedDelay);
+    } else {
+        snake.pop();
+    }
 
 }
 
-// Poruszanie się węża za pomocą klawiatury
-document.addEventListener("keydown", (event) => {
+// Start gry
+function startGame() {
+    gameStarted = true;
+    instructionText.style.display = "none";
+    logo.style.display = "none";
+    gameInterval = setInterval(() => {
+        moveSnake();
+        checkCollision();
+        draw();
+    }, gameSpeedDelay)
+}
+
+
+// Klawisz rozpoczęcia
+function handleKeyPress(event) {
+    if ((!gameStarted && event.code === "Space") || (!gameStarted && event.key === " ")) {
+        startGame();
+    } else {
     switch (event.key) {
         case "ArrowUp":
             direction = "up";
@@ -89,13 +129,77 @@ document.addEventListener("keydown", (event) => {
         case "ArrowRight":
             direction = "right";
             break;
+        } 
+    }  
+}
+
+document.addEventListener("keydown", handleKeyPress);
+
+function increseSpeed() {
+    console.log(gameSpeedDelay)
+    if (gameSpeedDelay > 150) {
+        gameSpeedDelay -= 5;
+    } else if (gameSpeedDelay > 100) {
+        gameSpeedDelay -= 3;
+    } else if (gameSpeedDelay > 50) {
+        gameSpeedDelay -= 2;
+    } else if (gameSpeedDelay > 25) {
+        gameSpeedDelay -= 1;
     }
-})
+}
+
+function checkCollision() {
+    const head = snake[0];
+
+    if(head.x < 1 || head.x > gridSize || head.y < 1 || head.y > gridSize) {
+        resetGame();
+    }
+    
+    for (let i = 1; i < snake.length; i++) {
+        if (head.x === snake[i].x && head.y === snake[i].y) {
+            resetGame();
+        }
+    }
+}
+
+function resetGame() {
+    updateHighScore();
+    stopGame();
+    snake = [{ x: 10, y: 10 }];
+    food = generateFood();
+    direction = "right";
+    gameSpeedDelay = 200;
+    updateScore();
+}
+
+function updateScore() {
+    const currentScore = snake.length - 1;
+    score.textContent = currentScore.toString().padStart(3, "0");
+}
+
+function stopGame() {
+    clearInterval(gameInterval);
+    gameStarted = false;
+    instructionText.style.display = "block";
+    logo.style.display = "block";
+}
+
+function updateHighScore() {
+    const currentScore = snake.length - 1;
+    if (currentScore > highScore) {
+        highScore = currentScore;
+        highScoreText.textContent = highScore.toString().padStart(3, "0");
+    }
+    highScoreText.style.display = 'block';
+}
 
 
-setInterval(() => {
-    moveSnake();
-    draw();
-}, 200);
+
+
+
+// setInterval(() => {
+//     moveSnake();
+//     draw();
+// }, 200);
 
 
